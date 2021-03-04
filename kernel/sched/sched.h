@@ -325,6 +325,7 @@ extern bool dl_cpu_busy(unsigned int cpu);
 
 struct cfs_rq;
 struct rt_rq;
+struct wrr_rq;
 
 extern struct list_head task_groups;
 
@@ -628,6 +629,15 @@ static inline bool rt_rq_is_runnable(struct rt_rq *rt_rq)
 	return rt_rq->rt_queued && rt_rq->rt_nr_running;
 }
 
+/* WRR class' related fields in a runqueue */
+struct wrr_rq {
+	/* run queue is a list */
+	struct list_head	wrr_rq_list;
+	raw_spinlock_t		wrr_rq_lock;
+	unsigned long		wrr_rq_weight;
+	struct sched_wrr_entity	wrr_entity_curr;	
+};
+
 /* Deadline class' related fields in a runqueue */
 struct dl_rq {
 	/* runqueue is an rbtree, ordered by deadline */
@@ -881,6 +891,7 @@ struct rq {
 	struct cfs_rq		cfs;
 	struct rt_rq		rt;
 	struct dl_rq		dl;
+	struct wrr_rq		wrr;	/* Declare wrr_rq */
 
 #ifdef CONFIG_FAIR_GROUP_SCHED
 	/* list of leaf cfs_rq on this CPU: */
