@@ -496,6 +496,15 @@ struct sched_rt_entity {
 #endif
 } __randomize_layout;
 
+/* Sched_wrr_entity definition */
+struct sched_wrr_entity {
+	struct list_head	entity_run_list;
+	unsigned int		entity_timeslice;
+	unsigned long		entity_weight;
+	struct sched_wrr_entity	*parent;
+	struct wrr_rq		*wrr_rq;	
+};
+
 struct sched_dl_entity {
 	struct rb_node			rb_node;
 
@@ -675,6 +684,8 @@ struct task_struct {
 	const struct sched_class	*sched_class;
 	struct sched_entity		se;
 	struct sched_rt_entity		rt;
+	struct sched_wrr_entity		wrr;
+
 #ifdef CONFIG_CGROUP_SCHED
 	struct task_group		*sched_task_group;
 #endif
