@@ -1,14 +1,19 @@
 #include "sched.h"
 
+/* Initializes wrr_rq variables, called by sched_fork()*/
 void init_wrr_rq(struct wrr_rq *wrr_rq)
 {
-	INIT_LIST_HEAD(&wrr_rq->wrr_rq_list);
+	INIT_LIST_HEAD(&wrr_rq->run_list);
         wrr_rq->total_rq_weight = 0;
+	wrr_rq->wrr_nr_running = 0;
         wrr_rq->current_task = NULL;
 	raw_spin_lock_init(&wrr_rq->wrr_rq_lock);
 }
 
-
+/* Enqueue runnable wrr task_struct to wrr_rq*/
+static void enqueue_task_wrr (struct rq *rq, struct task_struct * p, int flags)
+{
+}
 /*
  * All the scheduling class methods:
  */

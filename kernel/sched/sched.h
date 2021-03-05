@@ -635,6 +635,7 @@ struct wrr_rq {
 	struct list_head	wrr_rq_list;
 	raw_spinlock_t		wrr_rq_lock;
 	unsigned long		total_rq_weight;
+	unsigned int		wrr_nr_running;
 	struct task_struct*	current_task;	
 };
 
