@@ -89,7 +89,7 @@ struct task_struct init_task
 		.wrr_se_weight	= DEFAULT_WRR_WEIGHT,
 		.wrr_se_timeslice	= DEFAULT_WRR_TIMESLICE,
 		.timeout	= 0,
-		.run_list	= LIST_HEAD_INIT(tsk.wrr.run_list),
+		.run_list	= LIST_HEAD_INIT(init_task.wrr.run_list),
 	},
 	.tasks		= LIST_HEAD_INIT(init_task.tasks),
 #ifdef CONFIG_SMP
