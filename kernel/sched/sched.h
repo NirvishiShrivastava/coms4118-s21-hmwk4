@@ -634,8 +634,8 @@ struct wrr_rq {
 	/* run queue is a list */
 	struct list_head	wrr_rq_list;
 	raw_spinlock_t		wrr_rq_lock;
-	unsigned long		wrr_rq_weight;
-	struct sched_wrr_entity	wrr_entity_curr;	
+	unsigned long		total_rq_weight;
+	struct task_struct*	current_task;	
 };
 
 /* Deadline class' related fields in a runqueue */

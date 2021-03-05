@@ -498,11 +498,11 @@ struct sched_rt_entity {
 
 /* Sched_wrr_entity definition */
 struct sched_wrr_entity {
-	struct list_head	entity_run_list;
-	unsigned int		entity_timeslice;
-	unsigned long		entity_weight;
-	struct sched_wrr_entity	*parent;
-	struct wrr_rq		*wrr_rq;	
+	struct list_head	wrr_se_node;
+	unsigned int		wrr_se_timeslice;
+	unsigned long		wrr_se_weight;
+	//struct sched_wrr_entity	*parent;
+	//struct wrr_rq		*wrr_rq;	
 };
 
 struct sched_dl_entity {
