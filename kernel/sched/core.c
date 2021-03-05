@@ -2710,6 +2710,11 @@ static void __sched_fork(unsigned long clone_flags, struct task_struct *p)
 	p->rt.time_slice	= sched_rr_timeslice;
 	p->rt.on_rq		= 0;
 	p->rt.on_list		= 0;
+	
+	/*Initialising sched_wrr_entity*/
+	INIT_LIST_HEAD(&p->wrr.wrr_se_node);
+	p->wrr.wrr_se_timeslice = DEFAULT_WRR_TIMESLICE;
+	p->wrr.wrr_se_weight = DEFAULT_WRR_WEIGHT;
 
 #ifdef CONFIG_PREEMPT_NOTIFIERS
 	INIT_HLIST_HEAD(&p->preempt_notifiers);

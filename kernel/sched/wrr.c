@@ -3,8 +3,8 @@
 void init_wrr_rq(struct wrr_rq *wrr_rq)
 {
 	INIT_LIST_HEAD(&wrr_rq->wrr_rq_list);
-        wrr_rq->wrr_rq_weight = 0;
-        wrr_rq->wrr_entity_curr = NULL;
+        wrr_rq->total_rq_weight = 0;
+        wrr_rq->current_task = NULL;
 	raw_spin_lock_init(&wrr_rq->wrr_rq_lock);
 }
 
