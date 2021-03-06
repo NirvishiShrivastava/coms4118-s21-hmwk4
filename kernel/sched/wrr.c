@@ -1,3 +1,7 @@
+/*
+ * Weight Round-Robin Scheduling Class (mapped to the SCHED_WRR policy)
+ */
+
 #include "sched.h"
 #include <linux/sched.h>
 #include <linux/spinlock.h>
