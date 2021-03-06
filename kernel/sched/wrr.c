@@ -5,6 +5,7 @@
 #include "sched.h"
 #include <linux/sched.h>
 #include <linux/spinlock.h>
+#include <linux/init_task.h>
 
 /* Initializes wrr_rq variables, called by sched_fork()*/
 void init_wrr_rq(struct wrr_rq *wrr_rq)
@@ -20,7 +21,7 @@ void init_wrr_rq(struct wrr_rq *wrr_rq)
 
 static void __enqueue_wrr_entity(struct rq *rq, struct sched_wrr_entity *wrr_se, unsigned int flags)
 {
-	struct wrr_rq *wrr_rq = rq->wrr;
+	struct wrr_rq *wrr_rq = &rq->wrr;
 	if (flags & ENQUEUE_HEAD)
 		list_add(&wrr_se->run_list, &rq->wrr.wrr_rq_list);
 	else
@@ -58,7 +59,7 @@ static void update_curr_wrr(struct rq *rq)
 	now = rq_clock_task(rq);
 	
 	/* delta_exec shows the time that current process ran */
-	delta_exec = now - curr->se.exec_stawrr;
+	delta_exec = now - curr->se.exec_start;
 	if (unlikely((s64)delta_exec <= 0))
 		return;
 	
@@ -71,7 +72,7 @@ static void update_curr_wrr(struct rq *rq)
 	account_group_exec_runtime(curr, delta_exec);
 	
 	/*  update exec_start time for next time */
-	curr->se.exec_stawrr = now;
+	curr->se.exec_start = now;
 	cgroup_account_cputime(curr, delta_exec);
 
 }
@@ -102,7 +103,7 @@ const struct sched_class wrr_sched_class = {
 	.enqueue_task		= enqueue_task_wrr,
         .dequeue_task           = dequeue_task_wrr,
 
-        .check_preempt_curr     = check_preempt_curr_wrr,
+        /*.check_preempt_curr     = check_preempt_curr_wrr,
 
         .pick_next_task         = pick_next_task_wrr,
         .put_prev_task          = put_prev_task_wrr,
@@ -119,7 +120,7 @@ const struct sched_class wrr_sched_class = {
         .get_rr_interval        = get_rr_interval_wrr,
 
         .prio_changed           = prio_changed_wrr,
-        .switched_to            = switched_to_wrr,
+        .switched_to            = switched_to_wrr,*/
         .update_curr            = update_curr_wrr,
 };
 
