@@ -21,7 +21,7 @@ static void __enqueue_wrr_entity(struct rq *rq, struct sched_wrr_entity *wrr_se,
         list_add(&wrr_se->run_list, &rq->wrr.wrr_rq_list);
     else
         list_add_tail(&wrr_se->run_list, &rq->wrr.wrr_rq_list);
-    rq->wrr.total_weight += wrr_se->wrr_se_weight;
+    rq->wrr.total_rq_weight += wrr_se->wrr_se_weight;
     wrr_rq->wrr_nr_running += 1;
     add_nr_running(rq, 1);
 }
