@@ -92,7 +92,7 @@ static void dequeue_task_wrr(struct rq *rq, struct task_struct *p, int flags)
 /*
  * All the scheduling class methods:
  */
-const struct sched_class sched_wrr_class = {
+const struct sched_class wrr_sched_class = {
 
 	.next			= &fair_sched_class,
 	.enqueue_task		= enqueue_task_wrr,
