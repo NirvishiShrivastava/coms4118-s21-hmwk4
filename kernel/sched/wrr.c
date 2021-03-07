@@ -95,6 +95,35 @@ static void dequeue_task_wrr(struct rq *rq, struct task_struct *p, int flags)
 	sub_nr_running(rq, 1);
 }
 
+static inline struct task_struct *wrr_task_of(struct sched_wrr_entity *wrr_se)
+{
+	return container_of(wrr_se, struct task_struct, wrr);
+}
+
+static struct task_struct *__pick_next_task_wrr(struct rq *rq)
+{
+	struct sched_wrr_entity *next_se = NULL;
+	struct wrr_rq *wrr_rq  = &rq->wrr;
+	next_se = list_first_entry(wrr_rq.wrr_rq_list, struct sched_wrr_entity, run_list);
+	
+	return wrr_task_of(next_se);
+}
+
+static struct task_struct *
+pick_next_task_wrr(struct rq *rq, struct task_struct *prev, struct rq_flags *rf)
+{
+	struct task_struct *p;
+    
+	if (!rq->wrr.wrr_nr_running)
+		return NULL;
+	
+	p = __pick_next_task_wrr(rq);
+	
+	/* Setting up start time for task_struct p*/
+	p->se.exec_start = rq_clock_task(rq); 
+	return p;
+}
+
 /*
  * All the scheduling class methods:
  */
@@ -104,10 +133,10 @@ const struct sched_class wrr_sched_class = {
 	.enqueue_task		= enqueue_task_wrr,
         .dequeue_task           = dequeue_task_wrr,
 
-        /*.check_preempt_curr     = check_preempt_curr_wrr,
+        //.check_preempt_curr     = check_preempt_curr_wrr,
 
         .pick_next_task         = pick_next_task_wrr,
-        .put_prev_task          = put_prev_task_wrr,
+        /*.put_prev_task          = put_prev_task_wrr,
         .set_next_task          = set_next_task_wrr,
 
 #ifdef CONFIG_SMP
