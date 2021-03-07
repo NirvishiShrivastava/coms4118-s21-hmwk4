@@ -28,7 +28,6 @@ static void __enqueue_wrr_entity(struct rq *rq, struct sched_wrr_entity *wrr_se,
 		list_add_tail(&wrr_se->run_list, &rq->wrr.wrr_rq_list);
 	rq->wrr.total_rq_weight += wrr_se->wrr_se_weight;
 	wrr_rq->wrr_nr_running += 1;
-	add_nr_running(rq, 1);
 }
 
 static void enqueue_task_wrr(struct rq *rq, struct task_struct *p, int flags)
@@ -39,6 +38,8 @@ static void enqueue_task_wrr(struct rq *rq, struct task_struct *p, int flags)
 		wrr_se->timeout = 0;
 	
 	__enqueue_wrr_entity(rq, wrr_se, flags);
+	add_nr_running(rq, 1);
+
 }
 
 /* 
