@@ -103,8 +103,8 @@ static inline struct task_struct *wrr_task_of(struct sched_wrr_entity *wrr_se)
 static struct task_struct *__pick_next_task_wrr(struct rq *rq)
 {
 	struct sched_wrr_entity *next_se = NULL;
-	struct wrr_rq *wrr_rq  = &rq->wrr;
-	next_se = list_first_entry(wrr_rq.wrr_rq_list, struct sched_wrr_entity, run_list);
+	struct list_head *queue  = &(rq->wrr.wrr_rq_list);
+	next_se = list_first_entry(queue, struct sched_wrr_entity, run_list);
 	
 	return wrr_task_of(next_se);
 }
@@ -129,13 +129,13 @@ pick_next_task_wrr(struct rq *rq, struct task_struct *prev, struct rq_flags *rf)
  */
 static void requeue_task_wrr(struct rq *rq, struct task_struct *p, int head)
 {
-	struct sched_rt_entity *wrr_se = &p->wrr;
-	struct wrr_rq *wrr_rq  = &rq->wrr;
+	struct sched_wrr_entity *wrr_se = &p->wrr;
+	struct list_head *queue  = &(rq->wrr.wrr_rq_list);
 	
 	if (head)
-		list_move(&wrr_se->run_list, wrr_rq.wrr_rq_list);
+		list_move(&wrr_se->run_list, queue);
 	else
-		list_move_tail(&wrr_se->run_list, wrr_rq.wrr_rq_list);
+		list_move_tail(&wrr_se->run_list, queue);
     
     /*
     for_each_sched_rt_entity(rt_se) {
