@@ -125,6 +125,32 @@ pick_next_task_wrr(struct rq *rq, struct task_struct *prev, struct rq_flags *rf)
 }
 
 /*
+ * Put task to the head or the end of the run list without the overhead of dequeue followed by enqueue.
+ */
+static void requeue_task_wrr(struct rq *rq, struct task_struct *p, int head)
+{
+	struct sched_rt_entity *wrr_se = &p->wrr;
+	struct wrr_rq *wrr_rq  = &rq->wrr;
+	
+	if (head)
+		list_move(&wrr_se->run_list, wrr_rq.wrr_rq_list);
+	else
+		list_move_tail(&wrr_se->run_list, wrr_rq.wrr_rq_list);
+    
+    /*
+    for_each_sched_rt_entity(rt_se) {
+		rt_rq = rt_rq_of_se(rt_se);
+		requeue_rt_entity(rt_rq, rt_se, head);
+	}
+    */
+}
+
+static void yield_task_wrr(struct rq *rq)
+{
+	requeue_task_wrr(rq, rq->curr, 0);
+}
+
+/*
  * All the scheduling class methods:
  */
 const struct sched_class wrr_sched_class = {
@@ -132,8 +158,8 @@ const struct sched_class wrr_sched_class = {
 	.next			= &fair_sched_class,
 	.enqueue_task		= enqueue_task_wrr,
         .dequeue_task           = dequeue_task_wrr,
-
-        //.check_preempt_curr     = check_preempt_curr_wrr,
+	.yield_task		= yield_task_wrr,
+	//.check_preempt_curr     = check_preempt_curr_wrr,
 
         .pick_next_task         = pick_next_task_wrr,
         /*.put_prev_task          = put_prev_task_wrr,
