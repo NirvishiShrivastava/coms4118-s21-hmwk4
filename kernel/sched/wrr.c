@@ -136,18 +136,35 @@ static void requeue_task_wrr(struct rq *rq, struct task_struct *p, int head)
 		list_move(&wrr_se->run_list, queue);
 	else
 		list_move_tail(&wrr_se->run_list, queue);
-    
-    /*
-    for_each_sched_rt_entity(rt_se) {
-		rt_rq = rt_rq_of_se(rt_se);
-		requeue_rt_entity(rt_rq, rt_se, head);
-	}
-    */
 }
 
 static void yield_task_wrr(struct rq *rq)
 {
 	requeue_task_wrr(rq, rq->curr, 0);
+}
+
+/* scheduler tick hitting a task of our scheduling class. */
+static void task_tick_wrr(struct rq *rq, struct task_struct *p, int queued)
+{
+	struct sched_wrr_entity *wrr_se = &p->wrr;
+
+	update_curr_wrr(rq);
+	
+	/* TODO: Check if we require this function
+	* update_wrr_rq_load_avg(rq_clock_pelt(rq), rq, 1);
+	*/
+	
+	if (p->policy != SCHED_WRR)
+		return;
+
+	if (--p->wrr.wrr_se_timeslice)
+		return;
+
+	p->wrr.wrr_se_timeslice = DEFAULT_WRR_TIMESLICE * wrr_se_weight;
+
+	/* Requeue to the end of queue */
+	requeue_task_wrr(rq, p, 0);
+	resched_curr(rq);
 }
 
 /*
@@ -170,10 +187,10 @@ const struct sched_class wrr_sched_class = {
         .select_task_rq         = select_task_rq_wrr,
         .set_cpus_allowed       = set_cpus_allowed_common,
 #endif
-
+*/
         .task_tick              = task_tick_wrr,
 
-        .get_rr_interval        = get_rr_interval_wrr,
+        /*.get_rr_interval        = get_rr_interval_wrr,
 
         .prio_changed           = prio_changed_wrr,
         .switched_to            = switched_to_wrr,*/
