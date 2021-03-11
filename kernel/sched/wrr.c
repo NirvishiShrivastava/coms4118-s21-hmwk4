@@ -169,6 +169,31 @@ static void task_tick_wrr(struct rq *rq, struct task_struct *p, int queued)
 	}
 }
 
+/* Called right before prev is going to be taken off the CPU. */
+static void put_prev_task_wrr(struct rq *rq, struct task_struct *prev)
+{
+	update_curr_wrr(rq);
+}
+
+
+static inline void set_next_task_wrr(struct rq *rq, struct task_struct *p)
+{
+	p->se.exec_start = rq_clock_task(rq);
+}
+
+
+static void
+prio_changed_wrr(struct rq *rq, struct task_struct *p, int oldprio)
+{
+	BUG();
+}
+
+
+static unsigned int get_rr_interval_wrr(struct rq *rq, struct task_struct *task)
+{
+	return task->wrr.wrr_se_weight * DEFAULT_WRR_TIMESLICE;
+}
+
 /*
  * All the scheduling class methods:
  */
@@ -181,21 +206,21 @@ const struct sched_class wrr_sched_class = {
 	//.check_preempt_curr     = check_preempt_curr_wrr,
 
         .pick_next_task         = pick_next_task_wrr,
-        /*.put_prev_task          = put_prev_task_wrr,
+        .put_prev_task          = put_prev_task_wrr,
         .set_next_task          = set_next_task_wrr,
 
 #ifdef CONFIG_SMP
-        .balance                = balance_wrr,
-        .select_task_rq         = select_task_rq_wrr,
+        /*.balance                = balance_wrr,
+        .select_task_rq         = select_task_rq_wrr,*/
         .set_cpus_allowed       = set_cpus_allowed_common,
 #endif
-*/
+
         .task_tick              = task_tick_wrr,
 
-        /*.get_rr_interval        = get_rr_interval_wrr,
+        .get_rr_interval        = get_rr_interval_wrr,
 
         .prio_changed           = prio_changed_wrr,
-        .switched_to            = switched_to_wrr,*/
+        /*.switched_to            = switched_to_wrr,*/
         .update_curr            = update_curr_wrr,
 };
 
