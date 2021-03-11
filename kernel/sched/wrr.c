@@ -160,7 +160,7 @@ static void task_tick_wrr(struct rq *rq, struct task_struct *p, int queued)
 	if (--p->wrr.wrr_se_timeslice)
 		return;
 
-	p->wrr.wrr_se_timeslice = DEFAULT_WRR_TIMESLICE * wrr_se_weight;
+	wrr_se->wrr_se_timeslice = DEFAULT_WRR_TIMESLICE * wrr_se->wrr_se_weight;
 
 	/* Requeue to the end of queue */
 	if (wrr_se->run_list.prev != wrr_se->run_list.next) {
