@@ -194,6 +194,29 @@ static unsigned int get_rr_interval_wrr(struct rq *rq, struct task_struct *task)
 	return task->wrr.wrr_se_weight * DEFAULT_WRR_TIMESLICE;
 }
 
+#ifdef CONFIG_SMP
+
+static int balance_wrr(struct rq *rq, struct task_struct *p, struct rq_flags *rf)
+{
+	return 0;
+}
+
+static int
+select_task_rq_wrr(struct task_struct *p, int cpu, int sd_flag, int flags)
+{
+        return task_cpu(p); /* IDLE tasks as never migrated */
+}
+
+#endif
+
+static void switched_to_wrr(struct rq *rq, struct task_struct *p)
+{
+}
+
+static void check_preempt_curr_wrr(struct rq *rq, struct task_struct *p, int flags)
+{
+}
+
 /*
  * All the scheduling class methods:
  */
@@ -203,15 +226,15 @@ const struct sched_class wrr_sched_class = {
 	.enqueue_task		= enqueue_task_wrr,
         .dequeue_task           = dequeue_task_wrr,
 	.yield_task		= yield_task_wrr,
-	//.check_preempt_curr     = check_preempt_curr_wrr,
+	.check_preempt_curr     = check_preempt_curr_wrr,
 
         .pick_next_task         = pick_next_task_wrr,
         .put_prev_task          = put_prev_task_wrr,
         .set_next_task          = set_next_task_wrr,
 
 #ifdef CONFIG_SMP
-        /*.balance                = balance_wrr,
-        .select_task_rq         = select_task_rq_wrr,*/
+        .balance                = balance_wrr,
+        .select_task_rq         = select_task_rq_wrr,
         .set_cpus_allowed       = set_cpus_allowed_common,
 #endif
 
@@ -220,7 +243,7 @@ const struct sched_class wrr_sched_class = {
         .get_rr_interval        = get_rr_interval_wrr,
 
         .prio_changed           = prio_changed_wrr,
-        /*.switched_to            = switched_to_wrr,*/
+        .switched_to            = switched_to_wrr,
         .update_curr            = update_curr_wrr,
 };
 
