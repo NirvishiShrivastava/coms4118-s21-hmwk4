@@ -2888,7 +2888,10 @@ int sched_fork(unsigned long clone_flags, struct task_struct *p)
 		p->sched_class = &rt_sched_class;
 	else
 		p->sched_class = &fair_sched_class;
-
+	if (wrr_policy(p->policy)) {
+                p->sched_class = &wrr_sched_class;
+                pr_info("Setting WRR_POLICY for PID %d from sched_fork", p->pid);
+        }
 	init_entity_runnable_average(&p->se);
 
 	/*
@@ -4473,6 +4476,11 @@ void rt_mutex_setprio(struct task_struct *p, struct task_struct *pi_task)
 			p->rt.timeout = 0;
 		p->sched_class = &fair_sched_class;
 	}
+
+	if (wrr_policy(p->policy)) {
+                p->sched_class = &wrr_sched_class;
+                pr_info("Setting WRR_POLICY for PID %d from rt_mutex_setprio", p->pid);
+        }
 
 	p->prio = prio;
 
