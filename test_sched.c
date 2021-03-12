@@ -24,9 +24,9 @@ int main(int argc, char *argv[])
 	policy = sched_getscheduler(pid);
         printf("Process with PID %d has policy %d\n", pid, policy);
 
-	sleep(10);
+	/*sleep(10);
 	policy = sched_getscheduler(pid);
         printf("Process with PID %d has policy %d\n", pid, policy);
-
+	*/
 	return 0;
 }
