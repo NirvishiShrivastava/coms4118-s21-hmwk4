@@ -10,6 +10,8 @@
 /* Initializes wrr_rq variables, called by sched_fork()*/
 void init_wrr_rq(struct wrr_rq *wrr_rq)
 {
+	pr_info("Inside function: %s", __func__);
+
 	INIT_LIST_HEAD(&wrr_rq->wrr_rq_list);
 	wrr_rq->total_rq_weight = 0;
 	wrr_rq->wrr_nr_running = 0;
@@ -21,6 +23,8 @@ void init_wrr_rq(struct wrr_rq *wrr_rq)
 
 static void __enqueue_wrr_entity(struct rq *rq, struct sched_wrr_entity *wrr_se, unsigned int flags)
 {
+	pr_info("Inside function: %s", __func__);
+	
 	struct wrr_rq *wrr_rq = &rq->wrr;
 	if (flags & ENQUEUE_HEAD)
 		list_add(&wrr_se->run_list, &rq->wrr.wrr_rq_list);
@@ -32,6 +36,8 @@ static void __enqueue_wrr_entity(struct rq *rq, struct sched_wrr_entity *wrr_se,
 
 static void enqueue_task_wrr(struct rq *rq, struct task_struct *p, int flags)
 {
+	pr_info("Inside function: %s", __func__);
+
 	struct sched_wrr_entity *wrr_se = &p->wrr;
 	
 	if (flags & ENQUEUE_WAKEUP)
@@ -49,6 +55,8 @@ static void enqueue_task_wrr(struct rq *rq, struct task_struct *p, int flags)
  */
 static void update_curr_wrr(struct rq *rq)
 {
+	pr_info("Inside function: %s", __func__);
+	
 	struct task_struct *curr = rq->curr;
 	struct sched_wrr_entity *wrr_se = &curr->wrr;
 	u64 delta_exec;
@@ -80,6 +88,8 @@ static void update_curr_wrr(struct rq *rq)
 
 static void __dequeue_wrr_entity(struct rq *rq, struct sched_wrr_entity *wrr_se, unsigned int flags)
 {
+	pr_info("Inside function: %s", __func__);
+	
 	list_del_init(&wrr_se->run_list);
 	rq->wrr.total_rq_weight -= wrr_se->wrr_se_weight;
 	--rq->wrr.wrr_nr_running;
@@ -88,6 +98,8 @@ static void __dequeue_wrr_entity(struct rq *rq, struct sched_wrr_entity *wrr_se,
 /* Dequeue non-runnable wrr task_struct from wrr_rq*/
 static void dequeue_task_wrr(struct rq *rq, struct task_struct *p, int flags)
 {
+	pr_info("Inside function: %s", __func__);
+	
 	struct sched_wrr_entity *wrr_se = &p->wrr;
 
 	update_curr_wrr(rq);
@@ -97,11 +109,15 @@ static void dequeue_task_wrr(struct rq *rq, struct task_struct *p, int flags)
 
 static inline struct task_struct *wrr_task_of(struct sched_wrr_entity *wrr_se)
 {
+	pr_info("Inside function: %s", __func__);
+	
 	return container_of(wrr_se, struct task_struct, wrr);
 }
 
 static struct task_struct *__pick_next_task_wrr(struct rq *rq)
 {
+	pr_info("Inside function: %s", __func__);
+	
 	struct sched_wrr_entity *next_se = NULL;
 	struct list_head *queue  = &(rq->wrr.wrr_rq_list);
 	next_se = list_first_entry(queue, struct sched_wrr_entity, run_list);
@@ -112,6 +128,9 @@ static struct task_struct *__pick_next_task_wrr(struct rq *rq)
 static struct task_struct *
 pick_next_task_wrr(struct rq *rq, struct task_struct *prev, struct rq_flags *rf)
 {
+	pr_info("Inside function: %s", __func__);
+	if (prev)
+		pr_info("PID is %d", prev->pid);	
 	struct task_struct *p;
     
 	if (!rq->wrr.wrr_nr_running)
@@ -129,6 +148,8 @@ pick_next_task_wrr(struct rq *rq, struct task_struct *prev, struct rq_flags *rf)
  */
 static void requeue_task_wrr(struct rq *rq, struct task_struct *p, int head)
 {
+	pr_info("Inside function: %s", __func__);
+	
 	struct sched_wrr_entity *wrr_se = &p->wrr;
 	struct list_head *queue  = &(rq->wrr.wrr_rq_list);
 	
@@ -140,12 +161,16 @@ static void requeue_task_wrr(struct rq *rq, struct task_struct *p, int head)
 
 static void yield_task_wrr(struct rq *rq)
 {
+	pr_info("Inside function: %s", __func__);
+	
 	requeue_task_wrr(rq, rq->curr, 0);
 }
 
 /* scheduler tick hitting a task of our scheduling class. */
 static void task_tick_wrr(struct rq *rq, struct task_struct *p, int queued)
 {
+	pr_info("Inside function: %s", __func__);
+	
 	struct sched_wrr_entity *wrr_se = &p->wrr;
 
 	update_curr_wrr(rq);
@@ -172,12 +197,16 @@ static void task_tick_wrr(struct rq *rq, struct task_struct *p, int queued)
 /* Called right before prev is going to be taken off the CPU. */
 static void put_prev_task_wrr(struct rq *rq, struct task_struct *prev)
 {
+	pr_info("Inside function: %s", __func__);
+	
 	update_curr_wrr(rq);
 }
 
 
 static inline void set_next_task_wrr(struct rq *rq, struct task_struct *p)
 {
+	pr_info("Inside function: %s", __func__);
+	
 	p->se.exec_start = rq_clock_task(rq);
 }
 
@@ -185,12 +214,16 @@ static inline void set_next_task_wrr(struct rq *rq, struct task_struct *p)
 static void
 prio_changed_wrr(struct rq *rq, struct task_struct *p, int oldprio)
 {
+	pr_info("Inside function: %s", __func__);
+	
 	BUG();
 }
 
 
 static unsigned int get_rr_interval_wrr(struct rq *rq, struct task_struct *task)
 {
+	pr_info("Inside function: %s", __func__);
+	
 	return task->wrr.wrr_se_weight * DEFAULT_WRR_TIMESLICE;
 }
 
@@ -198,23 +231,29 @@ static unsigned int get_rr_interval_wrr(struct rq *rq, struct task_struct *task)
 
 static int balance_wrr(struct rq *rq, struct task_struct *p, struct rq_flags *rf)
 {
+	pr_info("Inside function: %s", __func__);
+	
 	return 0;
 }
 
 static int
 select_task_rq_wrr(struct task_struct *p, int cpu, int sd_flag, int flags)
 {
-        return task_cpu(p); /* IDLE tasks as never migrated */
+	pr_info("Inside function: %s", __func__);
+	
+	return task_cpu(p); /* IDLE tasks as never migrated */
 }
 
 #endif
 
 static void switched_to_wrr(struct rq *rq, struct task_struct *p)
 {
+	pr_info("Inside function: %s", __func__);
 }
 
 static void check_preempt_curr_wrr(struct rq *rq, struct task_struct *p, int flags)
 {
+	pr_info("Inside function: %s", __func__);
 }
 
 /*
