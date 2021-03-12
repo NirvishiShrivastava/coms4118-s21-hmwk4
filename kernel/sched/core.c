@@ -4735,6 +4735,12 @@ static void __setscheduler(struct rq *rq, struct task_struct *p,
 		p->sched_class = &rt_sched_class;
 	else
 		p->sched_class = &fair_sched_class;
+
+	pr_info("Inside function %s", __func__);
+	if (wrr_policy(p->policy)) {
+		p->sched_class = &wrr_sched_class;
+		pr_info("Setting WRR_POLICY for PID %d", p->pid);
+	}
 }
 
 /*
