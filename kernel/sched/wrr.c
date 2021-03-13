@@ -240,8 +240,29 @@ static int
 select_task_rq_wrr(struct task_struct *p, int cpu, int sd_flag, int flags)
 {
 	pr_info("Inside function: %s", __func__);
+	unsigned long min_weight, temp_weight;
+	struct rq *rq;
+	int cpu_iter;
+
+	min_weight = LONG_MAX;
+
+	rcu_read_lock();
+
+	for_each_cpu(cpu_iter, p->cpus_ptr) {
+		pr_info("Iterating over CPU %d", cpu_iter);
+		rq = cpu_rq(cpu_iter);
+		temp_weight = rq->wrr.total_rq_weight;
+		if (min_weight > temp_weight) {
+			min_weight = temp_weight;
+			cpu = cpu_iter;
+		} else if (min_weight == temp_weight && cpu > cpu_iter)
+			cpu = cpu_iter;
+	}
+
+	rcu_read_unlock();
 	
-	return task_cpu(p); /* IDLE tasks as never migrated */
+	pr_info("Chosen CPU: %d", cpu);
+	return cpu;
 }
 
 #endif
