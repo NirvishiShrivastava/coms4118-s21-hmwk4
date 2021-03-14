@@ -7968,3 +7968,44 @@ const u32 sched_prio_to_wmult[40] = {
 };
 
 #undef CREATE_TRACE_POINTS
+
+/* WRR SYSTEM CALLS */
+
+#define MAX_CPUS 8
+struct wrr_info {
+	int num_cpus;
+	int nr_running[MAX_CPUS];
+	int total_weight[MAX_CPUS];
+};
+	
+SYSCALL_DEFINE1(get_wrr_info, struct wrr_info* __user, info)
+{
+	struct wrr_info temp;
+	struct rq *rq;
+	int cpu;
+	int nr_cpus = num_online_cpus(); /* TODO:check how to get total number of CPUs*/
+	temp.num_cpus = nr_cpus;
+	
+	rcu_read_lock();
+	for_each_online_cpu(cpu)
+	{
+		rq = cpu_rq(cpu);
+		temp.nr_running[cpu] = rq->wrr.wrr_nr_running;
+		temp.total_weight[cpu] = rq->wrr.total_rq_weight;
+		
+		if(cpu == (MAX_CPUS - 1))
+			break;
+	}
+
+	rcu_read_unlock();
+	
+	if(copy_to_user(info, &temp, sizeof(struct wrr_info)))
+		return -EFAULT;
+
+	return nr_cpus;
+}
+
+SYSCALL_DEFINE1(set_wrr_weight, int, weight)
+{
+	return 0;
+}
