@@ -8009,17 +8009,21 @@ SYSCALL_DEFINE1(set_wrr_weight, int, weight)
 {
 	struct task_struct *p = current;
 	struct rq *rq;
+	struct rq_flags rf;
 	int curr_weight;
-	rq = task_rq(p);
 
 	if(!uid_eq(current_uid(), GLOBAL_ROOT_UID))
 		return -EACCES;
 	if(weight < 1)
 		return -EINVAL;
-
+	
+	rq = task_rq_lock(p, &rf);
+	
 	curr_weight = p->wrr.wrr_se_weight;
 	p->wrr.wrr_se_weight = weight;
 	rq->wrr.total_rq_weight += weight - curr_weight; 
 	
+	task_rq_unlock(rq, p, &rf);
+
 	return 0;
 }
