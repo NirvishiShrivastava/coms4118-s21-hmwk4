@@ -85,6 +85,12 @@ static void dequeue_task_wrr(struct rq *rq, struct task_struct *p, int flags)
 	update_curr_wrr(rq);
 	__dequeue_wrr_entity(rq, wrr_se, flags);
 	sub_nr_running(rq, 1);
+	
+	/* idle balance  */
+	#ifdef CONFIG_SMP
+	if (rq->wrr.wrr_nr_running == 0)
+		pull_wrr_task(rq);
+	#endif /*CONFIG_SMP*/
 }
 
 static inline struct task_struct *wrr_task_of(struct sched_wrr_entity *wrr_se)
