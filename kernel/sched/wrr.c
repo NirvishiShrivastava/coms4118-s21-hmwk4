@@ -88,8 +88,8 @@ static void dequeue_task_wrr(struct rq *rq, struct task_struct *p, int flags)
 	
 	/* idle balance  */
 	#ifdef CONFIG_SMP
-	if (rq->wrr.wrr_nr_running == 0)
-		pull_wrr_task(rq);
+	/*if (rq->wrr.wrr_nr_running == 0)
+		pull_wrr_task(rq);*/
 	#endif /*CONFIG_SMP*/
 }
 
@@ -204,9 +204,9 @@ static inline void pull_wrr_task(struct rq *this_rq)
     
 	/* Do not pull tasks from non-active CPUs */
 	if (!cpu_active(this_cpu))
-		return 0;
+		return;
 
-
+	pr_info("1. inside pull function before iterating");
     /* Iterate through CPUs to find highest weight CPU */
 	rcu_read_lock();
 	for_each_online_cpu(cpu_iter) {
@@ -232,14 +232,14 @@ static inline void pull_wrr_task(struct rq *this_rq)
     
 	/* Source CPU found from which task can be pulled */
         src_rq = cpu_rq(src_cpu);
-    
+        pr_info("2. FOUND SOuRCE CPU");
 	double_rq_lock(this_rq, src_rq);
 
 	/* Iterate over src_rq to find the task to be pulled */
 	list_for_each_entry(wrr_se, &src_rq->wrr.wrr_rq_list, run_list) {
 		p = list_entry(wrr_se, struct task_struct, wrr);
 
-		if (task_running(src_rq, p) || !cpumask_test_cpu(this_cpu, p->ptrs) || p->policy != SCHED_WRR)
+		if (task_running(src_rq, p) || !cpumask_test_cpu(this_cpu, p->cpus_ptr) || p->policy != SCHED_WRR)
 			continue;
 
         	//WARN_ON(p == src_rq->curr);
@@ -260,7 +260,7 @@ static int balance_wrr(struct rq *rq, struct task_struct *p, struct rq_flags *rf
     rq_unpin_lock(rq, rf);
     pull_wrr_task(rq);
     rq_repin_lock(rq, rf);
-    
+    pr_info("return from PULL function ************");  
     return rq->wrr.wrr_nr_running;
     //return sched_stop_runnable(rq) || sched_dl_runnable(rq) || sched_rt_runnable(rq);
 }
