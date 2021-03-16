@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
 	
 	/* Printing wrr_info details*/
 
-	for (i = 0; i < MAX_CPUS; i++)
+	for (i = 0; i < ret; i++)
                { 
 			printf("NR_RUNNING for CPU-%d = %d\n",i, buf.nr_running[i]);
 		 	printf("TOTAL_WEIGHT for CPU-%d = %d\n",i, buf.total_weight[i]);
