@@ -185,9 +185,78 @@ static unsigned int get_rr_interval_wrr(struct rq *rq, struct task_struct *task)
 
 #ifdef CONFIG_SMP
 
+static inline void pull_wrr_task(struct rq *this_rq)
+{
+        int this_cpu = this_rq->cpu;
+        int src_cpu, cpu_iter, max_wrr_weight;
+	struct rq *src_rq;
+	struct task_struct *p;
+	struct sched_wrr_entity *wrr_se;
+    
+        src_cpu = -1;
+	max_wrr_weight = 0;
+    
+	/* Do not pull tasks from non-active CPUs */
+	if (!cpu_active(this_cpu))
+		return 0;
+
+
+    /* Iterate through CPUs to find highest weight CPU */
+	rcu_read_lock();
+	for_each_online_cpu(cpu_iter) {
+		
+        if (cpu_iter == this_cpu)
+			continue;
+
+		src_rq = cpu_rq(cpu_iter);
+
+		if (src_rq->wrr.wrr_nr_running <= 1)
+			continue;
+
+		if (max_wrr_weight < src_rq->wrr.total_rq_weight) {
+			src_cpu = cpu_iter;
+			max_wrr_weight = src_rq->wrr.total_rq_weight;
+		}
+	}
+	rcu_read_unlock();
+    
+        /* If no CPU found return */
+	if (src_cpu == -1)
+		return;
+    
+	/* Source CPU found from which task can be pulled */
+        src_rq = cpu_rq(src_cpu);
+    
+	double_rq_lock(this_rq, src_rq);
+
+	/* Iterate over src_rq to find the task to be pulled */
+	list_for_each_entry(wrr_se, &src_rq->wrr.wrr_rq_list, run_list) {
+		p = list_entry(wrr_se, struct task_struct, wrr);
+
+		if (task_running(src_rq, p) || !cpumask_test_cpu(this_cpu, p->ptrs) || p->policy != SCHED_WRR)
+			continue;
+
+        	//WARN_ON(p == src_rq->curr);
+        	WARN_ON(!task_on_rq_queued(p));
+        	deactivate_task(src_rq, p, 0);
+        	set_task_cpu(p, this_cpu);
+        	activate_task(this_rq, p, 0);
+
+        	double_rq_unlock(this_rq, src_rq);
+        	return;
+	}
+	
+	double_rq_unlock(this_rq, src_rq);
+}
+
 static int balance_wrr(struct rq *rq, struct task_struct *p, struct rq_flags *rf)
 {
-	return 0;
+    rq_unpin_lock(rq, rf);
+    pull_wrr_task(rq);
+    rq_repin_lock(rq, rf);
+    
+    return rq->wrr.wrr_nr_running;
+    //return sched_stop_runnable(rq) || sched_dl_runnable(rq) || sched_rt_runnable(rq);
 }
 
 static int
