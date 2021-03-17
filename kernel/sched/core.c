@@ -8010,10 +8010,12 @@ SYSCALL_DEFINE1(set_wrr_weight, int, weight)
 	struct rq_flags rf;
 	int curr_weight;
 
-	if (!uid_eq(current_uid(), GLOBAL_ROOT_UID))
-		return -EACCES;
 	if (weight < 1)
 		return -EINVAL;
+
+	if (weight > 10 && !uid_eq(current_uid(), GLOBAL_ROOT_UID))
+		return -EACCES;
+
 	rq = task_rq_lock(p, &rf);
 	curr_weight = p->wrr.wrr_se_weight;
 	p->wrr.wrr_se_weight = weight;
