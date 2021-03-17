@@ -4456,11 +4456,6 @@ void rt_mutex_setprio(struct task_struct *p, struct task_struct *pi_task)
 	 *          running task
 	 */
 
-	if (wrr_policy(p->policy)) {
-		p->sched_class = &wrr_sched_class;
-		pr_info("Setting WRR_POLICY for PID %d from %s",
-				p->pid, __func__);
-	}
 	if (dl_prio(prio)) {
 		if (!dl_prio(p->normal_prio) ||
 		    (pi_task && dl_entity_preempt(&pi_task->dl, &p->dl))) {
@@ -4481,6 +4476,12 @@ void rt_mutex_setprio(struct task_struct *p, struct task_struct *pi_task)
 		if (rt_prio(oldprio))
 			p->rt.timeout = 0;
 		p->sched_class = &fair_sched_class;
+	}
+
+	if (wrr_policy(p->policy)) {
+		p->sched_class = &wrr_sched_class;
+		pr_info("Setting WRR_POLICY for PID %d from %s",
+				p->pid, __func__);
 	}
 
 	p->prio = prio;
