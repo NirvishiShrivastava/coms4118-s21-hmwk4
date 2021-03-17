@@ -88,8 +88,8 @@ static void dequeue_task_wrr(struct rq *rq, struct task_struct *p, int flags)
 	sub_nr_running(rq, 1);
 	/* idle balance  */
 #ifdef CONFIG_SMP
-	if (rq->wrr.wrr_nr_running == 0)
-		pull_wrr_task(rq);
+	/*if (rq->wrr.wrr_nr_running == 0)
+		pull_wrr_task(rq);*/
 #endif
 }
 
