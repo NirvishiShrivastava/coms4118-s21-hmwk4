@@ -44,8 +44,7 @@ DEFINE_PER_CPU_SHARED_ALIGNED(struct rq, runqueues);
  * sysctl_sched_features, defined in sched.h, to allow constants propagation
  * at compile time and compiler optimization based on features default.
  */
-#define SCHED_FEAT(name, enabled)	\
-	(1UL << __SCHED_FEAT_##name) * enabled |
+#define SCHED_FEAT(name, enabled)\(1UL << __SCHED_FEAT_##name) * enabled|
 const_debug unsigned int sysctl_sched_features =
 #include "features.h"
 	0;
@@ -1281,7 +1280,8 @@ static inline int uclamp_validate(struct task_struct *p,
 	return -EOPNOTSUPP;
 }
 static void __setscheduler_uclamp(struct task_struct *p,
-				  const struct sched_attr *attr) { }
+				  const struct sched_attr *attr) {
+}
 static inline void uclamp_fork(struct task_struct *p) { }
 static inline void init_uclamp(void) { }
 #endif /* CONFIG_UCLAMP_TASK */
@@ -2710,7 +2710,6 @@ static void __sched_fork(unsigned long clone_flags, struct task_struct *p)
 	p->rt.time_slice	= sched_rr_timeslice;
 	p->rt.on_rq		= 0;
 	p->rt.on_list		= 0;
-	
 	/*Initialising sched_wrr_entity*/
 	INIT_LIST_HEAD(&p->wrr.run_list);
 	p->wrr.wrr_se_timeslice = DEFAULT_WRR_TIMESLICE * DEFAULT_WRR_WEIGHT;
@@ -2866,9 +2865,11 @@ int sched_fork(unsigned long clone_flags, struct task_struct *p)
 	 */
 	if (unlikely(p->sched_reset_on_fork)) {
 		if (task_has_dl_policy(p) || task_has_rt_policy(p)) {
-			p->policy = SCHED_NORMAL;
+			p->policy = SCHED_WRR;
+			/*p->policy = SCHED_NORMAL;
 			p->static_prio = NICE_TO_PRIO(0);
 			p->rt_priority = 0;
+			*/
 		} else if (PRIO_TO_NICE(p->static_prio) < 0)
 			p->static_prio = NICE_TO_PRIO(0);
 
@@ -2889,11 +2890,9 @@ int sched_fork(unsigned long clone_flags, struct task_struct *p)
 	else
 		p->sched_class = &fair_sched_class;
 	if (wrr_policy(p->policy)) {
-                p->sched_class = &wrr_sched_class;
-                pr_info("Setting WRR_POLICY for PID %d from sched_fork", p->pid);
-        }
+		p->sched_class = &wrr_sched_class;
+	}
 	init_entity_runnable_average(&p->se);
-
 	/*
 	 * The child is not yet in the pid-hash so no cgroup attach races,
 	 * and the cgroup is pinned to this child due to cgroup_fork()
@@ -4455,6 +4454,11 @@ void rt_mutex_setprio(struct task_struct *p, struct task_struct *pi_task)
 	 *      --> -dl task blocks on mutex A and could preempt the
 	 *          running task
 	 */
+	
+	if (wrr_policy(p->policy)) {
+		p->sched_class = &wrr_sched_class;
+		pr_info("Setting WRR_POLICY for PID %d from rt_mutex_setprio", p->pid);
+	}
 	if (dl_prio(prio)) {
 		if (!dl_prio(p->normal_prio) ||
 		    (pi_task && dl_entity_preempt(&pi_task->dl, &p->dl))) {
@@ -4476,11 +4480,6 @@ void rt_mutex_setprio(struct task_struct *p, struct task_struct *pi_task)
 			p->rt.timeout = 0;
 		p->sched_class = &fair_sched_class;
 	}
-
-	if (wrr_policy(p->policy)) {
-                p->sched_class = &wrr_sched_class;
-                pr_info("Setting WRR_POLICY for PID %d from rt_mutex_setprio", p->pid);
-        }
 
 	p->prio = prio;
 
@@ -7977,31 +7976,25 @@ struct wrr_info {
 	int nr_running[MAX_CPUS];
 	int total_weight[MAX_CPUS];
 };
-	
 SYSCALL_DEFINE1(get_wrr_info, struct wrr_info* __user, info)
 {
 	struct wrr_info temp;
 	struct rq *rq;
 	int cpu;
-	int nr_cpus = num_online_cpus(); /* TODO:check how to get total number of CPUs*/
+	/* TODO:check how to get total number of CPUs*/
+	int nr_cpus = num_online_cpus();
 	temp.num_cpus = nr_cpus;
-	
 	rcu_read_lock();
-	for_each_online_cpu(cpu)
-	{
+	for_each_online_cpu(cpu) {
 		rq = cpu_rq(cpu);
 		temp.nr_running[cpu] = rq->wrr.wrr_nr_running;
 		temp.total_weight[cpu] = rq->wrr.total_rq_weight;
-		
-		if(cpu == (MAX_CPUS - 1))
+		if (cpu == (MAX_CPUS - 1))
 			break;
 	}
-
 	rcu_read_unlock();
-	
-	if(copy_to_user(info, &temp, sizeof(struct wrr_info)))
+	if (copy_to_user(info, &temp, sizeof(struct wrr_info)))
 		return -EFAULT;
-
 	return nr_cpus;
 }
 
@@ -8011,18 +8004,14 @@ SYSCALL_DEFINE1(set_wrr_weight, int, weight)
 	struct rq *rq;
 	struct rq_flags rf;
 	int curr_weight;
-
-	if(!uid_eq(current_uid(), GLOBAL_ROOT_UID))
+	if (!uid_eq(current_uid(), GLOBAL_ROOT_UID))
 		return -EACCES;
-	if(weight < 1)
+	if (weight < 1)
 		return -EINVAL;
-	
 	rq = task_rq_lock(p, &rf);
-	
 	curr_weight = p->wrr.wrr_se_weight;
 	p->wrr.wrr_se_weight = weight;
-	rq->wrr.total_rq_weight += weight - curr_weight; 
-	
+	rq->wrr.total_rq_weight += weight - curr_weight;
 	task_rq_unlock(rq, p, &rf);
 
 	return 0;
