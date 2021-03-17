@@ -7,8 +7,6 @@
 #include <linux/spinlock.h>
 #include <linux/init_task.h>
 
-static inline void pull_wrr_task(struct rq *this_rq);
-
 /* Initializes wrr_rq variables, called by sched_fork()*/
 void init_wrr_rq(struct wrr_rq *wrr_rq)
 {
@@ -192,7 +190,7 @@ static unsigned int get_rr_interval_wrr(struct rq *rq, struct task_struct *task)
 
 #ifdef CONFIG_SMP
 
-static inline void pull_wrr_task(struct rq *this_rq)
+static inline void idle_pull_wrr_task(struct rq *this_rq)
 {
 	int this_cpu = this_rq->cpu;
 	int src_cpu, cpu_iter, max_wrr_weight;
@@ -252,11 +250,96 @@ static inline void pull_wrr_task(struct rq *this_rq)
 	double_unlock_balance(this_rq, src_rq);
 }
 
+static inline void periodic_load_balance(void)
+{
+	int min_cpu, max_cpu, cpu_iter;
+	int min_wrr_weight, max_wrr_weight;
+	int eligible_task_weight;
+	struct rq *min_rq, *max_rq, *curr_rq;
+	struct task_struct *p;
+	struct sched_wrr_entity *wrr_se;
+	int imb, old_imb;
+
+	min_wrr_weight = INT_MAX;
+	max_wrr_weight = -1;
+
+	min_cpu = -1;
+	max_cpu = -1;
+
+	/* Iterate through CPUs to find highest weight CPU */
+	rcu_read_lock();
+	for_each_online_cpu(cpu_iter) {
+		curr_rq = cpu_rq(cpu_iter);
+		/*
+		if (src_rq->wrr.wrr_nr_running <= 1)
+			continue;
+		*/
+
+		if (max_wrr_weight < curr_rq->wrr.total_rq_weight) {
+			max_cpu = cpu_iter;
+			max_wrr_weight = curr_rq->wrr.total_rq_weight;
+		}
+
+		if (min_wrr_weight > curr_rq->wrr.total_rq_weight) {
+			min_cpu = cpu_iter;
+			min_wrr_weight = curr_rq->wrr.total_rq_weight;
+		}
+	}
+	rcu_read_unlock();
+
+	if (min_cpu == -1 || max_cpu == -1)
+		return;
+
+	old_imb = abs(max_wrr_weight - min_wrr_weight);
+	/* If imbalance is 0 */
+	if (!old_imb)
+		return;
+
+	/* Run Queues between which migration may occur */
+	min_rq = cpu_rq(min_cpu);
+	max_rq = cpu_rq(max_cpu);
+
+	double_lock_balance(min_rq, max_rq);
+
+	/* Iterate over max_rq to find the task to be pulled */
+	list_for_each_entry(wrr_se, &max_rq->wrr.wrr_rq_list, run_list) {
+		p = wrr_task_of(wrr_se);
+
+		if (task_running(max_rq, p)
+				|| !cpumask_test_cpu(min_cpu, p->cpus_ptr))
+			continue;
+
+		eligible_task_weight = p->wrr.wrr_se_weight;
+		imb = abs(min_wrr_weight + eligible_task_weight -
+				(max_wrr_weight - eligible_task_weight));
+
+		/* Check if imbalance is reversed */
+		if (imb > old_imb)
+			continue;
+
+		//WARN_ON(p == src_rq->curr);
+		WARN_ON(!task_on_rq_queued(p));
+		deactivate_task(max_rq, p, 0);
+		set_task_cpu(p, min_cpu);
+		activate_task(min_rq, p, 0);
+		double_unlock_balance(min_rq, max_rq);
+		return;
+	}
+	double_unlock_balance(min_rq, max_rq);
+}
+
 static int balance_wrr(struct rq *rq, struct task_struct *p,
 		struct rq_flags *rf)
 {
 	rq_unpin_lock(rq, rf);
-	pull_wrr_task(rq);
+
+	/* Idle balance check */
+	if (rq->wrr.wrr_nr_running == 0)
+		idle_pull_wrr_task(rq);
+
+	/* Periodic Load Balance check */
+	periodic_load_balance();
+
 	rq_repin_lock(rq, rf);
 
 	return rq->wrr.wrr_nr_running;
