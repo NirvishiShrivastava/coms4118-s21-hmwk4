@@ -25,6 +25,7 @@ static void __enqueue_wrr_entity(struct rq *rq,
 		struct sched_wrr_entity *wrr_se, unsigned int flags)
 {
 	struct wrr_rq *wrr_rq = &rq->wrr;
+
 	if (flags & ENQUEUE_HEAD)
 		list_add(&wrr_se->run_list, &rq->wrr.wrr_rq_list);
 	else
@@ -36,6 +37,7 @@ static void __enqueue_wrr_entity(struct rq *rq,
 static void enqueue_task_wrr(struct rq *rq, struct task_struct *p, int flags)
 {
 	struct sched_wrr_entity *wrr_se = &p->wrr;
+
 	if (flags & ENQUEUE_WAKEUP)
 		wrr_se->timeout = 0;
 	__enqueue_wrr_entity(rq, wrr_se, flags);
@@ -51,6 +53,7 @@ static void update_curr_wrr(struct rq *rq)
 	struct sched_wrr_entity *wrr_se = &curr->wrr;
 	u64 delta_exec;
 	u64 now;
+
 	if (curr->sched_class != &wrr_sched_class)
 		return;
 	now = rq_clock_task(rq);
@@ -83,13 +86,14 @@ static void __dequeue_wrr_entity(struct rq *rq,
 static void dequeue_task_wrr(struct rq *rq, struct task_struct *p, int flags)
 {
 	struct sched_wrr_entity *wrr_se = &p->wrr;
+
 	update_curr_wrr(rq);
 	__dequeue_wrr_entity(rq, wrr_se, flags);
 	sub_nr_running(rq, 1);
 	/* idle balance  */
 #ifdef CONFIG_SMP
-	/*if (rq->wrr.wrr_nr_running == 0)
-		pull_wrr_task(rq);*/
+	if (rq->wrr.wrr_nr_running == 0)
+		pull_wrr_task(rq);
 #endif
 }
 
@@ -102,6 +106,7 @@ static struct task_struct *__pick_next_task_wrr(struct rq *rq)
 {
 	struct sched_wrr_entity *next_se = NULL;
 	struct list_head *queue  = &(rq->wrr.wrr_rq_list);
+
 	next_se = list_first_entry(queue, struct sched_wrr_entity, run_list);
 	return wrr_task_of(next_se);
 }
@@ -110,6 +115,7 @@ static struct task_struct *
 pick_next_task_wrr(struct rq *rq, struct task_struct *prev, struct rq_flags *rf)
 {
 	struct task_struct *p;
+
 	if (!rq->wrr.wrr_nr_running)
 		return NULL;
 	p = __pick_next_task_wrr(rq);
@@ -125,6 +131,7 @@ static void requeue_task_wrr(struct rq *rq, struct task_struct *p, int head)
 {
 	struct sched_wrr_entity *wrr_se = &p->wrr;
 	struct list_head *queue  = &(rq->wrr.wrr_rq_list);
+
 	if (head)
 		list_move(&wrr_se->run_list, queue);
 	else
@@ -191,6 +198,7 @@ static inline void pull_wrr_task(struct rq *this_rq)
 	struct rq *src_rq;
 	struct task_struct *p;
 	struct sched_wrr_entity *wrr_se;
+
 	src_cpu = -1;
 	max_wrr_weight = 0;
 	/* Do not pull tasks from non-active CPUs */
@@ -256,6 +264,7 @@ select_task_rq_wrr(struct task_struct *p, int cpu, int sd_flag, int flags)
 	unsigned long min_weight, temp_weight;
 	struct rq *rq;
 	int cpu_iter;
+
 	min_weight = LONG_MAX;
 	rcu_read_lock();
 	for_each_online_cpu(cpu_iter) {
