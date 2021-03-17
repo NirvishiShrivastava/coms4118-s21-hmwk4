@@ -90,10 +90,11 @@ static void dequeue_task_wrr(struct rq *rq, struct task_struct *p, int flags)
 	update_curr_wrr(rq);
 	__dequeue_wrr_entity(rq, wrr_se, flags);
 	sub_nr_running(rq, 1);
+
 	/* idle balance  */
 #ifdef CONFIG_SMP
-	if (rq->wrr.wrr_nr_running == 0)
-		pull_wrr_task(rq);
+	/*if (rq->wrr.wrr_nr_running == 0)
+		pull_wrr_task(rq);*/
 #endif
 }
 
@@ -201,40 +202,46 @@ static inline void pull_wrr_task(struct rq *this_rq)
 
 	src_cpu = -1;
 	max_wrr_weight = 0;
+
 	/* Do not pull tasks from non-active CPUs */
 	if (!cpu_active(this_cpu))
 		return;
-	//pr_info("1. inside pull function before iterating");
+
 	/* Iterate through CPUs to find highest weight CPU */
 	rcu_read_lock();
 	for_each_online_cpu(cpu_iter) {
 		if (cpu_iter == this_cpu)
 			continue;
+
 		src_rq = cpu_rq(cpu_iter);
 		if (src_rq->wrr.wrr_nr_running <= 1)
 			continue;
+
 		if (max_wrr_weight < src_rq->wrr.total_rq_weight) {
 			src_cpu = cpu_iter;
 			max_wrr_weight = src_rq->wrr.total_rq_weight;
 		}
 	}
 	rcu_read_unlock();
+
 	/* If no CPU found return */
 	if (src_cpu == -1)
 		return;
+
 	/* Source CPU found from which task can be pulled */
 	src_rq = cpu_rq(src_cpu);
-	//pr_info("2. FOUND SOuRCE CPU - %d", src_cpu);
+
 	double_lock_balance(this_rq, src_rq);
 
 	/* Iterate over src_rq to find the task to be pulled */
 	list_for_each_entry(wrr_se, &src_rq->wrr.wrr_rq_list, run_list) {
 		p = wrr_task_of(wrr_se);
+
 		if (task_running(src_rq, p)
-				|| !cpumask_test_cpu(this_cpu, p->cpus_ptr)
-				|| p->policy != SCHED_WRR)
+				|| !cpumask_test_cpu(this_cpu, p->cpus_ptr))
 			continue;
-		WARN_ON(p == src_rq->curr);
+
+		//WARN_ON(p == src_rq->curr);
 		WARN_ON(!task_on_rq_queued(p));
 		deactivate_task(src_rq, p, 0);
 		set_task_cpu(p, this_cpu);
@@ -251,11 +258,8 @@ static int balance_wrr(struct rq *rq, struct task_struct *p,
 	rq_unpin_lock(rq, rf);
 	pull_wrr_task(rq);
 	rq_repin_lock(rq, rf);
-	//pr_info("return from PULL function ************");
+
 	return rq->wrr.wrr_nr_running;
-	/* return sched_stop_runnable(rq) ||
-	 * sched_dl_runnable(rq) || sched_rt_runnable(rq);
-	 */
 }
 
 static int
