@@ -503,7 +503,7 @@ struct sched_wrr_entity {
 	unsigned long		wrr_se_weight;
 	unsigned long		timeout;
 	//struct sched_wrr_entity	*parent;
-	//struct wrr_rq		*wrr_rq;	
+	//struct wrr_rq		*wrr_rq;
 };
 
 struct sched_dl_entity {

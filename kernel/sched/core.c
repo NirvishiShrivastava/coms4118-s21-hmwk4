@@ -2888,9 +2888,10 @@ int sched_fork(unsigned long clone_flags, struct task_struct *p)
 		p->sched_class = &rt_sched_class;
 	else
 		p->sched_class = &fair_sched_class;
-	if (wrr_policy(p->policy)) {
+
+	if (wrr_policy(p->policy))
 		p->sched_class = &wrr_sched_class;
-	}
+
 	init_entity_runnable_average(&p->se);
 	/*
 	 * The child is not yet in the pid-hash so no cgroup attach races,
@@ -4453,10 +4454,11 @@ void rt_mutex_setprio(struct task_struct *p, struct task_struct *pi_task)
 	 *      --> -dl task blocks on mutex A and could preempt the
 	 *          running task
 	 */
-	
+
 	if (wrr_policy(p->policy)) {
 		p->sched_class = &wrr_sched_class;
-		pr_info("Setting WRR_POLICY for PID %d from rt_mutex_setprio", p->pid);
+		pr_info("Setting WRR_POLICY for PID %d from %s",
+				p->pid, __func__);
 	}
 	if (dl_prio(prio)) {
 		if (!dl_prio(p->normal_prio) ||
@@ -7975,11 +7977,13 @@ struct wrr_info {
 	int nr_running[MAX_CPUS];
 	int total_weight[MAX_CPUS];
 };
+
 SYSCALL_DEFINE1(get_wrr_info, struct wrr_info* __user, info)
 {
 	struct wrr_info temp;
 	struct rq *rq;
 	int cpu;
+
 	/* TODO:check how to get total number of CPUs*/
 	int nr_cpus = num_online_cpus();
 	temp.num_cpus = nr_cpus;
@@ -8003,6 +8007,7 @@ SYSCALL_DEFINE1(set_wrr_weight, int, weight)
 	struct rq *rq;
 	struct rq_flags rf;
 	int curr_weight;
+
 	if (!uid_eq(current_uid(), GLOBAL_ROOT_UID))
 		return -EACCES;
 	if (weight < 1)

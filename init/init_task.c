@@ -87,7 +87,7 @@ struct task_struct init_task
 	},
 	.wrr		= {
 		.wrr_se_weight	= DEFAULT_WRR_WEIGHT,
-		.wrr_se_timeslice	= DEFAULT_WRR_WEIGHT * DEFAULT_WRR_TIMESLICE,
+		.wrr_se_timeslice = DEFAULT_WRR_WEIGHT * DEFAULT_WRR_TIMESLICE,
 		.timeout	= 0,
 		.run_list	= LIST_HEAD_INIT(init_task.wrr.run_list),
 	},
