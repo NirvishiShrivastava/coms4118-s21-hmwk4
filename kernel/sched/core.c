@@ -7986,6 +7986,7 @@ SYSCALL_DEFINE1(get_wrr_info, struct wrr_info* __user, info)
 
 	/* TODO:check how to get total number of CPUs*/
 	int nr_cpus = num_online_cpus();
+
 	temp.num_cpus = nr_cpus;
 	rcu_read_lock();
 	for_each_online_cpu(cpu) {
