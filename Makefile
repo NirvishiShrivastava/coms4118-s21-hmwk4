@@ -1,10 +1,10 @@
 AS = gcc
 FLAGS = -Wall
 
-all: test
+all: get_wrr_info_test
 
-test: test_sched.c
+get_wrr_info_test: get_wrr_info_test.c
 	$(AS) $(FLAGS) $< -o $@
 
 clean:
-	rm test
+	rm get_wrr_info_test
