@@ -7,6 +7,8 @@
 #include <linux/spinlock.h>
 #include <linux/init_task.h>
 
+static inline void periodic_load_balance(void);
+
 /* Initializes wrr_rq variables, called by sched_fork()*/
 void init_wrr_rq(struct wrr_rq *wrr_rq)
 {
@@ -15,6 +17,7 @@ void init_wrr_rq(struct wrr_rq *wrr_rq)
 	wrr_rq->wrr_nr_running = 0;
 	wrr_rq->current_task = NULL;
 	raw_spin_lock_init(&wrr_rq->wrr_rq_lock);
+	wrr_rq->wrr_next_balance = jiffies;
 }
 
 /* Enqueue runnable wrr task_struct to wrr_rq*/
@@ -148,6 +151,14 @@ static void task_tick_wrr(struct rq *rq, struct task_struct *p, int queued)
 	struct sched_wrr_entity *wrr_se = &p->wrr;
 
 	update_curr_wrr(rq);
+
+	if (time_after(jiffies, rq->wrr.wrr_next_balance)) {
+		//rq_unpin_lock(rq, rf);
+		periodic_load_balance();
+		//rq_repin_lock(rq, rf);
+		rq->wrr.wrr_next_balance = jiffies + HZ / 2;
+	}
+
 	if (p->policy != SCHED_WRR)
 		return;
 
@@ -336,9 +347,6 @@ static int balance_wrr(struct rq *rq, struct task_struct *p,
 	/* Idle balance check */
 	if (rq->wrr.wrr_nr_running == 0)
 		idle_pull_wrr_task(rq);
-
-	/* Periodic Load Balance check */
-	periodic_load_balance();
 
 	rq_repin_lock(rq, rf);
 

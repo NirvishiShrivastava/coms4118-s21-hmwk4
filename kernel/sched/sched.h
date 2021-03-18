@@ -642,6 +642,7 @@ struct wrr_rq {
 	unsigned long		total_rq_weight;
 	unsigned int		wrr_nr_running;
 	struct task_struct     *current_task;
+	unsigned long		wrr_next_balance;
 };
 
 /* Deadline class' related fields in a runqueue */
