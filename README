@@ -1,10 +1,10 @@
 TESTS:
 
-1. Test to check if timeslices are allocated according to weight of the process
+1. Check if timeslices are allocated according to weight of the process
 
 Test Program: test_runs/weighted_fork.c
 Output Log: test_runs/weighted_fork.log
-Creates 3 processes with weights 4, 20 & 100 assigned to them.
+The test program creates 3 processes with weights 4, 20 & 100 assigned to them.
 This program is run using taskset (cmd in output log file) so that all the 3 processes run the on the same CPU and none of them run in 
 parallel on different cores.
 
@@ -15,7 +15,7 @@ The output log suggests that the process with maximum weight i.e. 100 (aka Grand
 the maximum time and finishes its 100 iterations first. Meanwhile the process with weight as 20 (aka Child in the logs) reaches approx.
 20 iterations and the least weighted process (called Parent in the logs) reaches 4 iterations.
 
-2. Load Balancing with CPU bound processes.
+2. Generic Load Balancing with CPU bound processes.
 
 Test Programs: get_wrr_info_test.c & test_runs/cpu_bound_forks.c
 
@@ -25,4 +25,17 @@ the processes do not sleep and only preempt when their timeslice is over).
 We run get_wrr_info_test.c repeatedly to see the load across all the CPUs. The output for these runs is saved in 
 test_runs/cpu_bound_forks_load_balance.log which clearly indicates that the load is balanced across CPUs. The total number of processes
 shown in the logs is more than 8 as there are other running processes such as kworker, rcu_sched, gnome-shell, gnome-terminal, etc.
+
+3. Idle Balancing Check
+
+Test Program: test_runs/cpu_bound_weighted_fork.c
+
+This program creates 3 cpu bould processes (infinite while(1) loops without any print statements) with weights 4, 20 & 100. While running
+this program we have modified our scheduler's select_task_rq_wrr function to always return 0 because of which all the processes would 
+get scheduled on CPU 0. And then because of idle balancing (balance_wrr function), each of the remaining CPUs pull one task from CPU 0.
+
+We use program get_wrr_info_test.c to see the load on each CPU which is saved in file test_runs/idle_balance_check.log. The logs
+indicate that each of the CPUs {1, 2, 3} pull the tasks created with our test program with weights 4, 20 & 100 respectively.
+
+
 

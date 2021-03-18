@@ -1,0 +1,17 @@
+#### Ran with modified select_task_rq_wrr returning 0 all the time.
+
+rg3334@ubuntu:~/repos/test_dir/hmwk4/s21-hmwk4-team20$ ./get_wrr_info_test 
+Calling wrr_get system call
+Number of CPUs returned by system call is 4
+NR_RUNNING for CPU-0 = 5
+TOTAL_WEIGHT for CPU-0 = 50
+
+NR_RUNNING for CPU-1 = 1
+TOTAL_WEIGHT for CPU-1 = 4
+
+NR_RUNNING for CPU-2 = 1
+TOTAL_WEIGHT for CPU-2 = 20
+
+NR_RUNNING for CPU-3 = 1
+TOTAL_WEIGHT for CPU-3 = 100
+
