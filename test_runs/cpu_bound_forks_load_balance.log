@@ -1,0 +1,60 @@
+rg3334@ubuntu:~/repos/test_dir/hmwk4/s21-hmwk4-team20$ ./get_wrr_info_test 
+Calling wrr_get system call
+Number of CPUs returned by system call is 4
+NR_RUNNING for CPU-0 = 6
+TOTAL_WEIGHT for CPU-0 = 60
+
+NR_RUNNING for CPU-1 = 6
+TOTAL_WEIGHT for CPU-1 = 60
+
+NR_RUNNING for CPU-2 = 6
+TOTAL_WEIGHT for CPU-2 = 60
+
+NR_RUNNING for CPU-3 = 5
+TOTAL_WEIGHT for CPU-3 = 50
+
+rg3334@ubuntu:~/repos/test_dir/hmwk4/s21-hmwk4-team20$ ./get_wrr_info_test 
+Calling wrr_get system call
+Number of CPUs returned by system call is 4
+NR_RUNNING for CPU-0 = 5
+TOTAL_WEIGHT for CPU-0 = 50
+
+NR_RUNNING for CPU-1 = 5
+TOTAL_WEIGHT for CPU-1 = 50
+
+NR_RUNNING for CPU-2 = 4
+TOTAL_WEIGHT for CPU-2 = 40
+
+NR_RUNNING for CPU-3 = 4
+TOTAL_WEIGHT for CPU-3 = 40
+
+rg3334@ubuntu:~/repos/test_dir/hmwk4/s21-hmwk4-team20$ ./get_wrr_info_test 
+Calling wrr_get system call
+Number of CPUs returned by system call is 4
+NR_RUNNING for CPU-0 = 6
+TOTAL_WEIGHT for CPU-0 = 60
+
+NR_RUNNING for CPU-1 = 6
+TOTAL_WEIGHT for CPU-1 = 60
+
+NR_RUNNING for CPU-2 = 6
+TOTAL_WEIGHT for CPU-2 = 60
+
+NR_RUNNING for CPU-3 = 5
+TOTAL_WEIGHT for CPU-3 = 50
+
+rg3334@ubuntu:~/repos/test_dir/hmwk4/s21-hmwk4-team20$ ./get_wrr_info_test 
+Calling wrr_get system call
+Number of CPUs returned by system call is 4
+NR_RUNNING for CPU-0 = 6
+TOTAL_WEIGHT for CPU-0 = 60
+
+NR_RUNNING for CPU-1 = 6
+TOTAL_WEIGHT for CPU-1 = 60
+
+NR_RUNNING for CPU-2 = 6
+TOTAL_WEIGHT for CPU-2 = 60
+
+NR_RUNNING for CPU-3 = 6
+TOTAL_WEIGHT for CPU-3 = 60
+
