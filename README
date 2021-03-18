@@ -3,7 +3,7 @@ TESTS:
 1. Test to check if timeslices are allocated according to weight of the process
 
 Test Program: test_runs/weighted_fork.c
-
+Output Log: test_runs/weighted_fork.log
 Creates 3 processes with weights 4, 20 & 100 assigned to them.
 This program is run using taskset (cmd in output log file) so that all the 3 processes run the on the same CPU and none of them run in 
 parallel on different cores.
@@ -11,6 +11,6 @@ parallel on different cores.
 Each process runs a while loop that runs 100 times while doing a CPU bound iteration from 0 to 50,000,000 and then prints out
 the iteration number of the while loop at the end of each iteration.
 
-The output log (test_runs/weighted_fork.log) suggests that the process with maximum weight i.e. 100 (aka Grandchild in the logs) gets 
+The output log suggests that the process with maximum weight i.e. 100 (aka Grandchild in the logs) gets 
 the maximum time and finishes its 100 iterations first. Meanwhile the process with weight as 20 (aka Child in the logs) reaches approx.
 20 iterations and the least weighted process (called Parent in the logs) reaches 4 iterations.
