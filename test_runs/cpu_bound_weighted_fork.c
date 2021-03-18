@@ -11,7 +11,7 @@
 
 int wrr_set(int weight)
 {
-        return syscall(__NR_set_wrr_weight, weight);
+	return syscall(__NR_set_wrr_weight, weight);
 }
 
 int main()
@@ -22,7 +22,8 @@ int main()
         if(fork()) {
                 ret = wrr_set(4);
                 if (ret < 0) {
-                        fprintf(stderr, "error from wrr_set system call: %s\n",
+                        fprintf(stderr,
+				"error from wrr_set system call: %s\n",
                                 strerror(errno));
                         exit(EXIT_FAILURE);
                 }
@@ -31,7 +32,8 @@ int main()
                 if(fork()) {
                         ret = wrr_set(20);
                         if (ret < 0) {
-                                fprintf(stderr, "error from wrr_set system call: %s\n",
+                                fprintf(stderr,
+					"error from wrr_set system call: %s\n",
                                         strerror(errno));
                                 exit(EXIT_FAILURE);
                         }
@@ -39,7 +41,8 @@ int main()
                 } else {
                         ret = wrr_set(100);
                         if (ret < 0) {
-                                fprintf(stderr, "error from wrr_set system call: %s\n",
+                                fprintf(stderr,
+					"error from wrr_set system call: %s\n",
                                         strerror(errno));
                                 exit(EXIT_FAILURE);
                         }
