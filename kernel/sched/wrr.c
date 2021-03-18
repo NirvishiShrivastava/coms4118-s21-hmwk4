@@ -6,8 +6,12 @@
 #include <linux/sched.h>
 #include <linux/spinlock.h>
 #include <linux/init_task.h>
+#include <linux/jiffies.h>
 
-static inline void periodic_load_balance(void);
+unsigned long wrr_next_balance;
+
+DEFINE_SPINLOCK(wrr_timer_lock);
+DEFINE_SPINLOCK(wrr_lb_lock);
 
 /* Initializes wrr_rq variables, called by sched_fork()*/
 void init_wrr_rq(struct wrr_rq *wrr_rq)
@@ -15,9 +19,13 @@ void init_wrr_rq(struct wrr_rq *wrr_rq)
 	INIT_LIST_HEAD(&wrr_rq->wrr_rq_list);
 	wrr_rq->total_rq_weight = 0;
 	wrr_rq->wrr_nr_running = 0;
-	wrr_rq->current_task = NULL;
 	raw_spin_lock_init(&wrr_rq->wrr_rq_lock);
-	wrr_rq->wrr_next_balance = jiffies;
+
+	/* Initialize wrr_next_balance by any one CPU */
+	spin_lock(&wrr_timer_lock);
+	if (!wrr_next_balance)
+		wrr_next_balance = jiffies;
+	spin_unlock(&wrr_timer_lock);
 }
 
 /* Enqueue runnable wrr task_struct to wrr_rq*/
@@ -152,12 +160,14 @@ static void task_tick_wrr(struct rq *rq, struct task_struct *p, int queued)
 
 	update_curr_wrr(rq);
 
+	/*
 	if (time_after(jiffies, rq->wrr.wrr_next_balance)) {
-		//rq_unpin_lock(rq, rf);
-		periodic_load_balance();
-		//rq_repin_lock(rq, rf);
+		rq_unpin_lock(rq, rf);
+		wrr_periodic_load_balance();
+		rq_repin_lock(rq, rf);
 		rq->wrr.wrr_next_balance = jiffies + HZ / 2;
 	}
+	*/
 
 	if (p->policy != SCHED_WRR)
 		return;
@@ -261,7 +271,7 @@ static inline void idle_pull_wrr_task(struct rq *this_rq)
 	double_unlock_balance(this_rq, src_rq);
 }
 
-static inline void periodic_load_balance(void)
+void wrr_periodic_load_balance(void)
 {
 	int min_cpu, max_cpu, cpu_iter;
 	int min_wrr_weight, max_wrr_weight;
@@ -272,10 +282,28 @@ static inline void periodic_load_balance(void)
 	int imb, old_imb;
 
 	min_wrr_weight = INT_MAX;
-	max_wrr_weight = -1;
+	max_wrr_weight = 0;
 
 	min_cpu = -1;
 	max_cpu = -1;
+
+	spin_lock(&wrr_timer_lock);
+	//pr_info("WRR_NEXT_BALANCE: %u", jiffies_to_msecs(wrr_next_balance));
+	//pr_info("jiffies: %u", jiffies_to_msecs(jiffies));
+	if time_after_eq(jiffies, wrr_next_balance) {
+		pr_info("Trying to get LB lock on CPU %d", smp_processor_id());
+		spin_unlock(&wrr_timer_lock);
+		if (spin_trylock(&wrr_lb_lock)) {
+			pr_info("Acquired Load Balance Lock on CPU %d", smp_processor_id());
+			goto wrr_lb;
+		} else
+			return;
+	} else {
+		spin_unlock(&wrr_timer_lock);
+		return;
+	}
+
+wrr_lb:
 
 	/* Iterate through CPUs to find highest weight CPU */
 	rcu_read_lock();
@@ -299,12 +327,12 @@ static inline void periodic_load_balance(void)
 	rcu_read_unlock();
 
 	if (min_cpu == -1 || max_cpu == -1)
-		return;
+		goto update_next_bal;
 
 	old_imb = abs(max_wrr_weight - min_wrr_weight);
 	/* If imbalance is 0 */
 	if (!old_imb)
-		return;
+		goto update_next_bal;
 
 	/* Run Queues between which migration may occur */
 	min_rq = cpu_rq(min_cpu);
@@ -334,9 +362,17 @@ static inline void periodic_load_balance(void)
 		set_task_cpu(p, min_cpu);
 		activate_task(min_rq, p, 0);
 		double_unlock_balance(min_rq, max_rq);
-		return;
+		goto update_next_bal;
 	}
 	double_unlock_balance(min_rq, max_rq);
+
+update_next_bal:
+	spin_lock(&wrr_timer_lock);
+	wrr_next_balance = jiffies + HZ / 2;
+	pr_info("Setting WRR_NEXT_BALANCE to %u", jiffies_to_msecs(wrr_next_balance));
+	spin_unlock(&wrr_timer_lock);
+	spin_unlock(&wrr_lb_lock);
+	return;
 }
 
 static int balance_wrr(struct rq *rq, struct task_struct *p,
@@ -356,11 +392,11 @@ static int balance_wrr(struct rq *rq, struct task_struct *p,
 static int
 select_task_rq_wrr(struct task_struct *p, int cpu, int sd_flag, int flags)
 {
-	unsigned long min_weight, temp_weight;
+	int min_weight, temp_weight;
 	struct rq *rq;
 	int cpu_iter;
 
-	min_weight = LONG_MAX;
+	min_weight = INT_MAX;
 	rcu_read_lock();
 	for_each_online_cpu(cpu_iter) {
 		rq = cpu_rq(cpu_iter);
