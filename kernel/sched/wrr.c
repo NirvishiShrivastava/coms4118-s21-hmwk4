@@ -282,7 +282,7 @@ void wrr_periodic_load_balance(void)
 	int imb, old_imb;
 
 	min_wrr_weight = INT_MAX;
-	max_wrr_weight = 0;
+	max_wrr_weight = INT_MIN;
 
 	min_cpu = -1;
 	max_cpu = -1;
@@ -314,7 +314,11 @@ wrr_lb:
 			continue;
 		*/
 
+		pr_info("Curr weight %d", curr_rq->wrr.total_rq_weight);
+		pr_info("Initial Max weight %d", max_wrr_weight);
+		pr_info("Initial Min Weight %d", min_wrr_weight);
 		if (max_wrr_weight < curr_rq->wrr.total_rq_weight) {
+			pr_info("Updating wrr_max_weight");
 			max_cpu = cpu_iter;
 			max_wrr_weight = curr_rq->wrr.total_rq_weight;
 		}
@@ -326,6 +330,9 @@ wrr_lb:
 	}
 	rcu_read_unlock();
 
+	pr_info("Initial Max weight %d", max_wrr_weight);
+	pr_info("Initial Min Weight %d", min_wrr_weight);
+	pr_info("(Max, Min) CPUs: (%d, %d)", max_cpu, min_cpu);
 	if (min_cpu == -1 || max_cpu == -1)
 		goto update_next_bal;
 
