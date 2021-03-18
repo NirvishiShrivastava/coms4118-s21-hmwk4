@@ -639,10 +639,8 @@ struct wrr_rq {
 	/* run queue is a list */
 	struct list_head	wrr_rq_list;
 	raw_spinlock_t		wrr_rq_lock;
-	unsigned long		total_rq_weight;
-	unsigned int		wrr_nr_running;
-	struct task_struct     *current_task;
-	unsigned long		wrr_next_balance;
+	int			total_rq_weight;
+	int			wrr_nr_running;
 };
 
 /* Deadline class' related fields in a runqueue */
@@ -1845,6 +1843,8 @@ static inline bool sched_fair_runnable(struct rq *rq)
 extern void update_group_capacity(struct sched_domain *sd, int cpu);
 
 extern void trigger_load_balance(struct rq *rq);
+
+extern void wrr_periodic_load_balance(void);
 
 extern void set_cpus_allowed_common(struct task_struct *p, const struct cpumask *new_mask);
 
