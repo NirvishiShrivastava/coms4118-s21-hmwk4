@@ -274,7 +274,7 @@ void wrr_periodic_load_balance(void)
 	spin_lock(&wrr_timer_lock);
 
 	now = jiffies;
-	if time_after_eq(now, wrr_next_balance) {
+	if (time_after_eq(now, wrr_next_balance)) {
 		wrr_next_balance = now + HZ / 2;
 		spin_unlock(&wrr_timer_lock);
 	} else {
