@@ -37,5 +37,12 @@ get scheduled on CPU 0. And then because of idle balancing (balance_wrr function
 We use program get_wrr_info_test.c to see the load on each CPU which is saved in file test_runs/idle_balance_check.log. The logs
 indicate that each of the CPUs {1, 2, 3} pull the tasks created with our test program with weights 4, 20 & 100 respectively.
 
+4. Runing CPU Bound and I/O Bound Process
+
+Test I/O Bound Program: test_runs/file_io.c
+Test CPU Bound Program:  test_runs/inf_while.c
+
+The I/O bound program takes integer input from user and writes it onto a file whereas the CPU bound program is an infinite while loop.
+Both the programs are running simultaneously without any issues.
 
 
