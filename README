@@ -5,7 +5,7 @@ TESTS:
 Test Program: test_runs/weighted_fork.c
 Output Log: test_runs/weighted_fork.log
 The test program creates 3 processes with weights 4, 20 & 100 assigned to them.
-This program is run using taskset (cmd in output log file) so that all the 3 processes run the on the same CPU and none of them run in 
+This program is run using taskset (cmd in output log file) so that all the 3 processes run on the same CPU and none of them run in 
 parallel on different cores.
 
 Each process runs a while loop that runs 100 times while doing a CPU bound iteration from 0 to 50,000,000 and then prints out
@@ -30,7 +30,7 @@ shown in the logs is more than 8 as there are other running processes such as kw
 
 Test Program: test_runs/cpu_bound_weighted_fork.c
 
-This program creates 3 cpu bould processes (infinite while(1) loops without any print statements) with weights 4, 20 & 100. While running
+This program creates 3 cpu bound processes (infinite while(1) loops without any print statements) with weights 4, 20 & 100. While running
 this program we have modified our scheduler's select_task_rq_wrr function to always return 0 because of which all the processes would 
 get scheduled on CPU 0. And then because of idle balancing (balance_wrr function), each of the remaining CPUs pull one task from CPU 0.
 
