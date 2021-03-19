@@ -11,7 +11,6 @@
 unsigned long wrr_next_balance;
 
 DEFINE_SPINLOCK(wrr_timer_lock);
-DEFINE_SPINLOCK(wrr_lb_lock);
 
 /* Initializes wrr_rq variables, called by sched_fork()*/
 void init_wrr_rq(struct wrr_rq *wrr_rq)
@@ -280,6 +279,7 @@ void wrr_periodic_load_balance(void)
 	struct task_struct *p;
 	struct sched_wrr_entity *wrr_se;
 	int imb, old_imb;
+	unsigned long now;
 
 	min_wrr_weight = INT_MAX;
 	max_wrr_weight = INT_MIN;
@@ -288,31 +288,20 @@ void wrr_periodic_load_balance(void)
 	max_cpu = -1;
 
 	spin_lock(&wrr_timer_lock);
-	//pr_info("WRR_NEXT_BALANCE: %u", jiffies_to_msecs(wrr_next_balance));
-	//pr_info("jiffies: %u", jiffies_to_msecs(jiffies));
-	if time_after_eq(jiffies, wrr_next_balance) {
-		pr_info("Trying to get LB lock on CPU %d", smp_processor_id());
+
+	now = jiffies;
+	if time_after_eq(now, wrr_next_balance) {
+		wrr_next_balance = now + HZ / 2;
 		spin_unlock(&wrr_timer_lock);
-		if (spin_trylock(&wrr_lb_lock)) {
-			pr_info("Acquired Load Balance Lock on CPU %d", smp_processor_id());
-			goto wrr_lb;
-		} else
-			return;
 	} else {
 		spin_unlock(&wrr_timer_lock);
 		return;
 	}
 
-wrr_lb:
-
 	/* Iterate through CPUs to find highest weight CPU */
 	rcu_read_lock();
 	for_each_online_cpu(cpu_iter) {
 		curr_rq = cpu_rq(cpu_iter);
-		/*
-		if (src_rq->wrr.wrr_nr_running <= 1)
-			continue;
-		*/
 
 		pr_info("Curr weight %d", curr_rq->wrr.total_rq_weight);
 		pr_info("Initial Max weight %d", max_wrr_weight);
@@ -334,12 +323,13 @@ wrr_lb:
 	pr_info("Initial Min Weight %d", min_wrr_weight);
 	pr_info("(Max, Min) CPUs: (%d, %d)", max_cpu, min_cpu);
 	if (min_cpu == -1 || max_cpu == -1)
-		goto update_next_bal;
+		return;
 
 	old_imb = abs(max_wrr_weight - min_wrr_weight);
+
 	/* If imbalance is 0 */
 	if (!old_imb)
-		goto update_next_bal;
+		return;
 
 	/* Run Queues between which migration may occur */
 	min_rq = cpu_rq(min_cpu);
@@ -363,23 +353,14 @@ wrr_lb:
 		if (imb > old_imb)
 			continue;
 
-		//WARN_ON(p == src_rq->curr);
 		WARN_ON(!task_on_rq_queued(p));
 		deactivate_task(max_rq, p, 0);
 		set_task_cpu(p, min_cpu);
 		activate_task(min_rq, p, 0);
 		double_unlock_balance(min_rq, max_rq);
-		goto update_next_bal;
+		return;
 	}
 	double_unlock_balance(min_rq, max_rq);
-
-update_next_bal:
-	spin_lock(&wrr_timer_lock);
-	wrr_next_balance = jiffies + HZ / 2;
-	pr_info("Setting WRR_NEXT_BALANCE to %u", jiffies_to_msecs(wrr_next_balance));
-	spin_unlock(&wrr_timer_lock);
-	spin_unlock(&wrr_lb_lock);
-	return;
 }
 
 static int balance_wrr(struct rq *rq, struct task_struct *p,

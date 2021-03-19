@@ -3618,8 +3618,11 @@ void scheduler_tick(void)
 #ifdef CONFIG_SMP
 	rq->idle_balance = idle_cpu(cpu);
 	trigger_load_balance(rq);
-	/* Calling WRR Periodic Load Balancing per tick */
-	wrr_periodic_load_balance();
+
+	/* Calling WRR Periodic Load Balancing function per tick
+	 * implemented in kernel/sched/wrr.c
+	 */
+	/* wrr_periodic_load_balance(); */
 #endif
 }
 
