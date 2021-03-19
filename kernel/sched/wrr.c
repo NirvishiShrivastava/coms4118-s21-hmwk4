@@ -98,12 +98,6 @@ static void dequeue_task_wrr(struct rq *rq, struct task_struct *p, int flags)
 	update_curr_wrr(rq);
 	__dequeue_wrr_entity(rq, wrr_se, flags);
 	sub_nr_running(rq, 1);
-
-	/* idle balance  */
-#ifdef CONFIG_SMP
-	/*if (rq->wrr.wrr_nr_running == 0)
-		pull_wrr_task(rq);*/
-#endif
 }
 
 static inline struct task_struct *wrr_task_of(struct sched_wrr_entity *wrr_se)
@@ -159,15 +153,6 @@ static void task_tick_wrr(struct rq *rq, struct task_struct *p, int queued)
 
 	update_curr_wrr(rq);
 
-	/*
-	if (time_after(jiffies, rq->wrr.wrr_next_balance)) {
-		rq_unpin_lock(rq, rf);
-		wrr_periodic_load_balance();
-		rq_repin_lock(rq, rf);
-		rq->wrr.wrr_next_balance = jiffies + HZ / 2;
-	}
-	*/
-
 	if (p->policy != SCHED_WRR)
 		return;
 
@@ -199,7 +184,6 @@ static inline void set_next_task_wrr(struct rq *rq, struct task_struct *p)
 static void
 prio_changed_wrr(struct rq *rq, struct task_struct *p, int oldprio)
 {
-	BUG();
 }
 
 
