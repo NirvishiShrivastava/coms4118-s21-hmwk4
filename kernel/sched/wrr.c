@@ -58,7 +58,6 @@ static void enqueue_task_wrr(struct rq *rq, struct task_struct *p, int flags)
 static void update_curr_wrr(struct rq *rq)
 {
 	struct task_struct *curr = rq->curr;
-	struct sched_wrr_entity *wrr_se = &curr->wrr;
 	u64 delta_exec;
 	u64 now;
 
