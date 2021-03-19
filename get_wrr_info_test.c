@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
 	if (ret < 0) {
 		fprintf(stderr, "error from wrr_get system call: %s\n",
 				strerror(errno));
-		printf("Enable System Call Failed.\n");
+		printf("wrr_get system call failed.\n");
 		exit(EXIT_FAILURE);
 	}
 	printf("Number of CPUs returned by system call is %d\n", ret);
