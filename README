@@ -45,4 +45,10 @@ Test CPU Bound Program:  test_runs/inf_while.c
 The I/O bound program takes integer input from user and writes it onto a file whereas the CPU bound program is an infinite while loop.
 Both the programs are running simultaneously without any issues.
 
+5. Periodic Load Balancing
 
+We have implemented periodic load balancing in wrr_periodic_load_balance function as part of our scheduler class file wrr.c. The function
+checks if 500 ms have elapsed since the last periodic load balancing occurred and then only executes it again on one of the CPUs. Since we
+wanted to call this function per tick, we added it to scheduler_tick() function in kernel/sched/core.c. On booting the kernel with these changes,
+our OS runs for a few seconds/minutes after which it freezes. We weren't able to figure out the cause of this issue and therefore, in our final 
+submission we have commented the call to wrr_periodic_load_balance() from the scheduler_tick() function in kernel/sched/core.c.
