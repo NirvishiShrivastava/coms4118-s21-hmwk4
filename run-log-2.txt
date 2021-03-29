@@ -1,0 +1,3 @@
+INFO: process of weight 10 counted to 695735725
+INFO: process of weight 20 counted to 1196093087
+PASS: prop=1196093087/695735725; prop > 1.50 && prop < 2.50

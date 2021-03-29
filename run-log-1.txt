@@ -1,0 +1,21 @@
+PASS: booted successfully
+[461] sched policy changed: 7 --> 7
+Gaming computer go brrrrrrrrrrrrrrrrrrr
+PASS: policy value #7
+Gaming computer go brrrrrrrrrrrrrrrrrrr
+Gaming computer go brrrrrrrrrrrrrrrrrrr
+PASS: process runs on WRR
+Gaming computer go brrrrrrrrrrrrrrrrrrr
+Gaming computer go brrrrrrrrrrrrrrrrrrr
+Gaming computer go brrrrrrrrrrrrrrrrrrr
+PASS: process runs on WRR by default
+INFO: child landed on CPU 2
+INFO: child landed on CPU 2
+INFO: child landed on CPU 1
+INFO: child landed on CPU 2
+FAIL: procs_on_cpu[0] < 3 && procs_on_cpu[1] < 3 && procs_on_cpu[2] < 3 && procs_on_cpu[3] < 3
+PASS: wrr_ret == NR_CPUS && wrr_info.num_cpus == NR_CPUS
+[521] sched policy changed: 7 --> 7
+[523] sched policy changed: 7 --> 7
+/home/grader_test.sh: line 39:   523 Terminated              stress -c $((2*`nproc`)) > /dev/null
+PASS: stress tests
