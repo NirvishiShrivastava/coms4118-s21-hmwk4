@@ -1,0 +1,101 @@
+Non-Programming Problems:
+
+1. Exercise 6.11
+
+Ans.
+a) CPU Utilization and Response Time
+In a responsive system, we would like to keep the response time as minimum as possible. This means that we keep
+switching between processes so as to allocate processes some time quantum to respond. This would lead to more
+context switches and would therefore reduce CPU utilization especially if majority of the processes are I/O bound.
+
+Whereas, for maximizing CPU utilization we would want to schedule CPU bound processes for larger durations of 
+time on the CPU. This would mean that processes will have to wait for their turn, especially the I/O bound processes
+and would therefore lead to increase in response time.
+
+b) Average turnaround time and maximum waiting time
+For minimizing the average turnaround time, we would schedule the shortest job first. This means that longer jobs 
+will have to wait for a long time before they are scheduled and would therefore lead to increase in waiting time.
+
+c) I/O Device Utilization and CPU Utilization
+To maximize I/O device utilization, the I/O bound processses must be scheduled as soon as they're ready to run.
+Therefore, we need to perform context switches frequently and also, prioritizing I/O bound tasks would imply that
+the CPU isn't running any instructions for the majority of the time thereby reducing CPU utilization.
+On the other hand, if CPU utilization is to be maximized, we must schedule long running CPU bound tasks on the CPU. 
+Thus, I/O bound tasks would have to wait for their turn only to use the CPU for short CPU bursts and would result in 
+reduced I/O device utilization.
+
+2. Exercise 6.16
+
+Ans.
+a) https://github.com/W4118/s21-hmwk4-written-rishabh20/blob/master/gantt_charts.pdf
+
+b) Turnaround Time (milliseconds)
+
+FCFS:
+P1: 2, P2: 3, P3: 11, P4: 15, P5: 20
+
+SJF:
+P1: 3, P2: 1, P3: 20, P4: 7, P5: 12
+
+Non-Preemptive Priority:
+P1: 15, P2: 20, P3: 8, P4: 19, P5: 13
+
+RR (Quantum = 2):
+P1: 2, P2: 3, P3: 20, P4: 13, P5: 18
+
+c) Waiting Time (milliseconds)
+
+FCFS:
+P1: 0, P2: 2, P3: 3, P4: 11, P5: 15
+
+SJF:
+P1: 1, P2: 0, P3: 12, P4: 3, P5: 7
+
+Non-Preemptive Priority:
+P1: 13, P2: 19, P3: 0, P4: 15, P5: 8
+
+RR (Quantum = 2):
+P1: 0, P2: 2, P3: 12, P4: 9, P5: 13
+
+d) SJF Scheduling Algorithm
+
+3. Exercise 6.22
+
+Ans.
+The multilevel queue scheduling algorithm separates processes according to the characteristics of their CPU bursts and keeps
+I/O bound and interactive processes with low CPU burst times in higher priority queues while the processes that use too much
+CPU time are moved to lower priority queues. If a process uses the entire quantum assigned to it, it is assumed that it is a
+time consuming process and it is shifted to a lower priority queue.
+Therefore, in order to maximize the amount of time allocated to a user process, the user process should use majority of its
+assigned time quantum and give up the CPU just before the entire time quantum gets utilized. This way, the CPU would assume 
+that the process is an I/O bound process and would not shift it to a lower priority queue. One possible way would be to 
+perform CPU bound tasks for the majority of its time quantum and then sleep just before the time quantum finishes.
+
+4. Exercise 6.25
+
+Ans.
+a) 24
+b) 12
+c) 7
+
+5. Exercise 6.28
+
+Ans.
+a) Since A & B both are CPU-bound, they would typically exhaust their time quantum but since the nice value of 
+process A is lower, its priority will be higher and therefore its vruntime would be lower than the vruntime of
+process B even if they run for the same amount of time. This would ensure that process A would be picked more 
+often to be run on the CPU than process B. 
+
+
+b) When A is I/O bound, it would typically not use its entire time quantum and would be running for short CPU 
+bursts implying shorter actual run time on the CPU. On top of that since its priority is higher (nice value is
+lower), its vruntime would be much lower than process B whose actual run time on the CPU would be higher since
+it would exhaust its entire time quantum. Therefore, the value of vruntime for process A will eventually be 
+lower than for the CPU-bound process B, giving process A higher priority than process B.
+
+c) Since process A is having lower nice value and therefore higher priority, its vruntime would move more slowly
+as comparted to that of process B, but since A is CPU bound it will exhaust its entire time quantum whereas process
+B will use lesser of its time quantum as it is I/O bound. Because the actual runtime of process B will generally be
+much lesser than that of process A, it is possible that eventually the vruntime of process B becomes much lesser
+than that of process A and therefore it gets more priority than process A during scheduling, even though its nice
+value is higher than that of process A.

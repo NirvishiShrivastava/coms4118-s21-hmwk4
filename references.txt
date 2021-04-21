@@ -1,0 +1,16 @@
+Reference List for W4118 Homework4
+
+1. https://www.slideshare.net/linaroorg/the-linux-kernel-scheduler-for-beginners-sfo17421,
+used for doing programming parts.
+
+2. https://stackoverflow.com/questions/3086864/how-to-create-a-new-linux-kernel-scheduler,
+used for doing programming parts.
+
+3. https://mgouzenko.github.io/jekyll/update/2016/11/24/understanding-sched-class.html,
+used for doing programming parts.
+
+4. https://stackoverflow.com/questions/31008738/whats-the-purpose-of-on-rq-field-in-task-struct,
+used for doing programming parts.
+
+RISHABH GUPTA
+RG3334
